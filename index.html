@@ -93,7 +93,6 @@
         dataApi = `${ano}-${mes}-${dia}`;
       }
 
-      // LOG DE USO
       await registrarLog(orgaoId, dataApi);
 
       const baseUrl = `https://comunicaapi.pje.jus.br/api/v1/comunicacao`;
@@ -202,19 +201,20 @@
     async function registrarLog(orgaoId, dataApi) {
       const ip = await obterIP();
 
-      console.log("Enviando log para planilha:", { ip, orgaoId, dataApi });
+      const params = new URLSearchParams();
+      params.append("ip", ip);
+      params.append("orgaoId", orgaoId);
+      params.append("data", dataApi);
+
+      console.log("Enviando log para planilha (via URL encoded):", { ip, orgaoId, dataApi });
 
       try {
         const res = await fetch("https://script.google.com/macros/s/AKfycbw8CqiIUDDkfAb4-b5ErF4HtQPIGgw-RHGCovQpNKLoggiXFtB3zXOZ_hguDEgl3zhTfg/exec", {
           method: "POST",
           headers: {
-            "Content-Type": "application/json"
+            "Content-Type": "application/x-www-form-urlencoded"
           },
-          body: JSON.stringify({
-            ip: ip,
-            orgaoId: orgaoId,
-            data: dataApi
-          })
+          body: params.toString()
         });
 
         console.log("Resposta do script:", res.status);
