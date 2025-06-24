@@ -138,7 +138,6 @@
         `;
         status.innerHTML += gerarTextoFiltrado("");
 
-        // LOG em segundo plano
         registrarLog(orgaoId, dataApi).catch(console.error);
 
       } catch (err) {
@@ -167,10 +166,30 @@
 
     function gerarTextoFiltrado(tipoFiltro) {
       const sep = "<div style='margin:10px 0; color:#999;'>".concat("=".repeat(25)).concat("</div>");
-      return resultados
-        .filter((item) => !tipoFiltro || item.tipoDocumento === tipoFiltro)
-        .map((item) => {
-          const tipo = item.tipoDocumento || "SEM TIPO";
+      const grupos = {};
+
+      resultados.forEach((item) => {
+        const tipo = item.tipoDocumento || "SEM TIPO";
+        if (tipoFiltro && tipo !== tipoFiltro) return;
+
+        if (!grupos[tipo]) grupos[tipo] = [];
+        grupos[tipo].push(item);
+      });
+
+      const tiposOrdenados = Object.keys(grupos).sort();
+      let html = "";
+
+      tiposOrdenados.forEach((tipo) => {
+        const grupo = grupos[tipo];
+
+        grupo.sort((a, b) => {
+          const regex = /\d{7}-\d{2}\.\d{4}\.\d\.\d{2}\.\d{4}/;
+          const pa = (a.texto || "").match(regex)?.[0] || "";
+          const pb = (b.texto || "").match(regex)?.[0] || "";
+          return pa.localeCompare(pb);
+        });
+
+        grupo.forEach((item) => {
           let texto = item.texto || "";
           const link = item.link || "";
 
@@ -181,12 +200,16 @@
             textoLimpo = textoLimpo.slice(tipo.length).trimStart();
           }
 
-          const processado = textoLimpo
-            .replace(/N[ºº]?\s?(\d{7}-\d{2}\.\d{4}\.\d\.\d{2}\.\d{4})/g, '<span style="color:darkred;font-weight:bold;">Nº $1</span>');
+          const processado = textoLimpo.replace(
+            /N[ºº]?\s?(\d{7}-\d{2}\.\d{4}\.\d\.\d{2}\.\d{4})/g,
+            '<span style="color:darkred;font-weight:bold;">Nº $1</span>'
+          );
 
-          return `<strong>${tipo}</strong><br><br>${processado}<br><a href="${link}" target="_blank">${link}</a>${sep}`;
-        })
-        .join("");
+          html += `<strong>${tipo}</strong><br><br>${processado}<br><a href="${link}" target="_blank">${link}</a>${sep}`;
+        });
+      });
+
+      return html;
     }
 
     async function obterIP() {
