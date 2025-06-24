@@ -205,10 +205,23 @@ let processado = textoLimpo.replace(
   '<span style="color:darkred;font-weight:bold;">Nº $1</span>'
 );
 
-// pintar de roxo o trecho entre "- -" e o último "-" antes de "Magistrado"
-processado = processado.replace(/- -([\s\S]*?)-(?=[^-]*Magistrado)/g, (match, conteudo) => {
-  return `<span style="color:purple;font-weight:bold;">- -${conteudo}-</span>`;
-});
+// pintar de roxo entre "- -" e último "-" antes de "Magistrado" ou "Magistrado(a)"
+let idxInicio = processado.indexOf("- -");
+let idxMagistrado = processado.search(/Magistrado(\(a\))?/);
+
+if (idxInicio !== -1 && idxMagistrado !== -1) {
+  let trechoAntesMagistrado = processado.slice(idxInicio + 3, idxMagistrado);
+  let idxUltimoHifen = trechoAntesMagistrado.lastIndexOf("-");
+  
+  if (idxUltimoHifen !== -1) {
+    let inicio = idxInicio;
+    let fim = idxInicio + 3 + idxUltimoHifen + 1;
+    let original = processado.slice(inicio, fim);
+    let destacado = `<span style="color:purple;font-weight:bold;">${original}</span>`;
+    processado = processado.slice(0, inicio) + destacado + processado.slice(fim);
+  }
+}
+
 
 
 
