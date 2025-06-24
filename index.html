@@ -200,27 +200,31 @@
             textoLimpo = textoLimpo.slice(tipo.length).trimStart();
           }
 
-let processado = textoLimpo.replace(
+// localizar número do processo e pintar
+let textoBase = textoLimpo;
+textoBase = textoBase.replace(
   /N[ºº]?\s?(\d{7}-\d{2}\.\d{4}\.\d\.\d{2}\.\d{4})/g,
   '<span style="color:purple;font-weight:bold;">Nº $1</span>'
 );
 
-          // destacar de "- -" até o último hífen antes de "Magistrado" ou "Magistrado(a)"
-const textoReferencia = processado; // mantém o original para buscar posições sem afetar índice
-const ini = textoReferencia.indexOf("- -");
-const idxMag = textoReferencia.search(/- [^-]*Magistrado(\(a\))?/);
+// agora localizar "- -" até último "-" antes de "Magistrado(a)"
+let ini = textoLimpo.indexOf("- -");
+let idxMag = textoLimpo.search(/- [^-]*Magistrado(\(a\))?/);
 
 if (ini !== -1 && idxMag !== -1 && idxMag > ini) {
-  const trechoEntre = textoReferencia.slice(ini + 3, idxMag); // após "- -", até antes de "- Magistrado"
-  const idxUltHifenRel = trechoEntre.lastIndexOf("-");
+  let trechoEntre = textoLimpo.slice(ini + 3, idxMag); // após "- -", até "- Magistrado"
+  let idxUltHifen = trechoEntre.lastIndexOf("-");
 
-  if (idxUltHifenRel !== -1) {
-    const fim = ini + 3 + idxUltHifenRel + 1;
-    const alvo = textoReferencia.slice(ini, fim);
-    const pintado = `<span style="color:purple;font-weight:bold;">${alvo}</span>`;
-    processado = processado.replace(alvo, pintado);
+  if (idxUltHifen !== -1) {
+    let fim = ini + 3 + idxUltHifen + 1;
+    let alvo = textoLimpo.slice(ini, fim);
+    let alvoSpan = `<span style="color:purple;font-weight:bold;">${alvo}</span>`;
+    textoBase = textoBase.replace(alvo, alvoSpan);
   }
 }
+
+let processado = textoBase;
+
 
 
 
