@@ -193,42 +193,29 @@
           let texto = item.texto || "";
           const link = item.link || "";
 
-          texto = texto.replace(/&lt;/g, "<").replace(/&gt;/g, ">");
+          // destaque do número do processo
+          texto = texto.replace(
+            /N[ºº]?\s?(\d{7}-\d{2}\.\d{4}\.\d\.\d{2}\.\d{4})/g,
+            '<span style="color:darkred; font-weight:bold;">Nº $1</span>'
+          );
 
-          let textoLimpo = texto.trimStart();
-          if (textoLimpo.toUpperCase().startsWith(tipo.toUpperCase())) {
-            textoLimpo = textoLimpo.slice(tipo.length).trimStart();
+          // pintar trecho entre "- -" e último hífen antes de "Magistrado" ou "Magistrado(a)"
+          const textoPuro = item.texto || "";
+          const ini = textoPuro.indexOf("- -");
+          const idxMag = textoPuro.search(/- [^-]*Magistrado(\(a\))?/);
+
+          if (ini !== -1 && idxMag !== -1 && idxMag > ini) {
+            const trecho = textoPuro.slice(ini + 3, idxMag);
+            const idxUltHifen = trecho.lastIndexOf("-");
+            if (idxUltHifen !== -1) {
+              const fim = ini + 3 + idxUltHifen + 1;
+              const alvo = textoPuro.slice(ini, fim);
+              const alvoSpan = `<span style="color:purple; font-weight:bold;">${alvo}</span>`;
+              texto = texto.replace(alvo, alvoSpan);
+            }
           }
 
-let texto = item.texto || "";
-
-// destacar número do processo
-texto = texto.replace(
-  /N[ºº]?\s?(\d{7}-\d{2}\.\d{4}\.\d\.\d{2}\.\d{4})/g,
-  '<span style="color:darkred; font-weight:bold;">Nº $1</span>'
-);
-
-// pintar trecho entre "- -" e último hífen antes de "Magistrado" ou "Magistrado(a)"
-const textoPuro = item.texto || "";
-const ini = textoPuro.indexOf("- -");
-const idxMag = textoPuro.search(/- [^-]*Magistrado(\(a\))?/);
-
-if (ini !== -1 && idxMag !== -1 && idxMag > ini) {
-  const trecho = textoPuro.slice(ini + 3, idxMag);
-  const idxUltHifen = trecho.lastIndexOf("-");
-  if (idxUltHifen !== -1) {
-    const fim = ini + 3 + idxUltHifen + 1;
-    const alvo = textoPuro.slice(ini, fim);
-    const alvoSpan = `<span style="color:purple; font-weight:bold;">${alvo}</span>`;
-    texto = texto.replace(alvo, alvoSpan);
-  }
-}
-
-let processado = texto;
-
-
-
-          html += `<strong>${tipo}</strong><br><br>${processado}<br><a href="${link}" target="_blank">${link}</a>${sep}`;
+          html += `<strong>${tipo}</strong><br><br>${texto}<br><a href="${link}" target="_blank">${link}</a>${sep}`;
         });
       });
 
