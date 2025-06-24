@@ -205,6 +205,24 @@ let processado = textoLimpo.replace(
   '<span style="color:darkred;font-weight:bold;">Nº $1</span>'
 );
 
+          // destacar de "- -" até o último hífen antes de "Magistrado" ou "Magistrado(a)"
+const textoReferencia = processado; // mantém o original para buscar posições sem afetar índice
+const ini = textoReferencia.indexOf("- -");
+const idxMag = textoReferencia.search(/- [^-]*Magistrado(\(a\))?/);
+
+if (ini !== -1 && idxMag !== -1 && idxMag > ini) {
+  const trechoEntre = textoReferencia.slice(ini + 3, idxMag); // após "- -", até antes de "- Magistrado"
+  const idxUltHifenRel = trechoEntre.lastIndexOf("-");
+
+  if (idxUltHifenRel !== -1) {
+    const fim = ini + 3 + idxUltHifenRel + 1;
+    const alvo = textoReferencia.slice(ini, fim);
+    const pintado = `<span style="color:purple;font-weight:bold;">${alvo}</span>`;
+    processado = processado.replace(alvo, pintado);
+  }
+}
+
+
 
           html += `<strong>${tipo}</strong><br><br>${processado}<br><a href="${link}" target="_blank">${link}</a>${sep}`;
         });
