@@ -205,10 +205,11 @@ let processado = textoLimpo.replace(
   '<span style="color:darkred;font-weight:bold;">Nº $1</span>'
 );
 
-// destacar trecho roxo entre dois hífens antes de "Magistrado"
+// pintar de roxo o trecho entre "- -" e o último "-" antes de "Magistrado"
 processado = processado.replace(/- -([\s\S]*?)-(?=[^-]*Magistrado)/g, (match, conteudo) => {
   return `<span style="color:purple;font-weight:bold;">- -${conteudo}-</span>`;
 });
+
 
 
           html += `<strong>${tipo}</strong><br><br>${processado}<br><a href="${link}" target="_blank">${link}</a>${sep}`;
