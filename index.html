@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Consulta de Comunicações - TJAC</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; background: #f9f9f9; }
+    label { display: block; margin-top: 10px; }
+    input, select, button {
+      padding: 8px;
+      font-size: 16px;
+      margin-top: 5px;
+      width: 300px;
+    }
+    button { width: auto; }
+    #status {
+      margin-top: 20px;
+      white-space: normal;
+      font-family: monospace;
+      background: #fff;
+      padding: 10px;
+      border: 1px solid #ccc;
+      max-height: 600px;
+      overflow-y: auto;
+      text-align: justify;
+      color: black;
+    }
+  </style>
+</head>
+<body>
+  <h2>Consulta de Comunicações - TJAC</h2>
+
+  <p style="font-size: 14px; margin-bottom: 20px;">
+    Buscador criado por <strong>José Santiago de Queiroz Neto</strong> – Técnico Judiciário - com uso de IA.<br />
+    <em>Versão 1.0</em> – Para contato: <a href="mailto:jose.neto@tjac.jus.br">jose.neto@tjac.jus.br</a>
+  </p>
+
+  <label for="orgaoSelect">Selecione o órgão:</label>
+  <select id="orgaoSelect">
+    <option value="">-- Selecione um órgão --</option>
+    <option value="48862">Vice-Presidência</option>
+    <option value="48867">Câmara Criminal</option>
+    <option value="48870">Primeira Câmara Cível</option>
+    <option value="48871">Segunda Câmara Cível</option>
+    <option value="48878">Pleno Jurisdicional</option>
+    <option value="52077">Câmaras Cíveis Reunidas</option>
+    <option value="61579">Plantão Judiciário</option>
+  </select>
+
+  <label for="orgaoManual">Ou digite o código do órgão manualmente:</label>
+  <input type="number" id="orgaoManual" placeholder="Ex: 123" />
+
+  <label for="dataBusca">Data da busca:</label>
+  <input type="date" id="dataBusca" />
+
+  <button onclick="consultar()">Consultar</button>
+
+  <label for="filtroTipo" style="margin-top: 20px;">Filtrar por tipo de documento após a busca:</label>
+  <select id="filtroTipo" onchange="filtrarTipo()" style="width: 300px;">
+    <option value="">Todos os tipos</option>
+  </select>
+
+  <h3>Resultado:</h3>
+  <div id="status">Aguardando consulta...</div>
+
+  <script>
+    let resultados = [];
+    let tiposUnicos = new Set();
+
+    async function consultar() {
+      const select = document.getElementById("orgaoSelect");
+      const manual = document.getElementById("orgaoManual");
+      let dataApi = document.getElementById("dataBusca").value;
+      const status = document.getElementById("status");
+      const filtroTipo = document.getElementById("filtroTipo");
+
+      let orgaoId = manual.value.trim() || select.value;
+      status.innerHTML = "Consultando...";
+      filtroTipo.innerHTML = '<option value="">Todos os tipos</option>';
+      resultados = [];
+      tiposUnicos.clear();
+
+      if (!orgaoId) {
+        status.innerHTML = "Preencha corretamente o órgão.";
+        return;
+      }
+
+      if (!dataApi) {
+        const hoje = new Date();
+        const ano = hoje.getFullYear();
+        const mes = String(hoje.getMonth() + 1).padStart(2, "0");
+        const dia = String(hoje.getDate()).padStart(2, "0");
+        dataApi = `${ano}-${mes}-${dia}`;
+      }
+
+      const baseUrl = `https://comunicaapi.pje.jus.br/api/v1/comunicacao`;
+      let pagina = 1;
+
+      try {
+        while (true) {
+          const url = `${baseUrl}?siglaTribunal=TJAC&orgaoId=${orgaoId}&itensPorPagina=100&pagina=${pagina}&dataDisponibilizacaoInicio=${dataApi}&dataDisponibilizacaoFim=${dataApi}`;
+          const response = await fetch(url, {
+            headers: { Accept: "application/json" },
+          });
+
+          if (!response.ok) {
+            status.innerHTML = `Erro ${response.status} na página ${pagina}`;
+            return;
+          }
+
+          const json = await response.json();
+          const itens = json.items || [];
+          if (!itens.length) break;
+
+          resultados.push(...itens);
+          pagina++;
+          if (pagina > 50) break;
+        }
+
+        if (!resultados.length) {
+          status.innerHTML = "Nenhum resultado encontrado.";
+          return;
+        }
+
+        const nomeOrgao = resultados[0].nomeOrgao || `Órgão ${orgaoId}`;
+        const total = resultados.length;
+        const dataFormatada = dataApi.split("-").reverse().join("/");
+
+        resultados.forEach((item) =>
+          tiposUnicos.add(item.tipoDocumento || "SEM TIPO")
+        );
+        atualizarFiltroTipos();
+
+        status.innerHTML = `
+          <strong>${nomeOrgao}</strong><br><br>
+          <strong>Total de publicações:</strong> ${total}<br>
+          <strong>Data da busca:</strong> ${dataFormatada}<br><br>
+        `;
+        status.innerHTML += gerarTextoFiltrado("");
+
+        // LOG em segundo plano
+        registrarLog(orgaoId, dataApi).catch(console.error);
+
+      } catch (err) {
+        status.innerHTML = "Erro na consulta: " + err.message;
+      }
+    }
+
+    function atualizarFiltroTipos() {
+      const filtroTipo = document.getElementById("filtroTipo");
+      [...tiposUnicos]
+        .sort()
+        .forEach((tipo) => {
+          const opt = document.createElement("option");
+          opt.value = tipo;
+          opt.textContent = tipo;
+          filtroTipo.appendChild(opt);
+        });
+    }
+
+    function filtrarTipo() {
+      const tipo = document.getElementById("filtroTipo").value;
+      const status = document.getElementById("status");
+      const cabecalho = status.innerHTML.split("<br><br>")[0] + "<br><br>";
+      status.innerHTML = cabecalho + gerarTextoFiltrado(tipo);
+    }
+
+    function gerarTextoFiltrado(tipoFiltro) {
+      const sep = "<div style='margin:10px 0; color:#999;'>".concat("=".repeat(25)).concat("</div>");
+      return resultados
+        .filter((item) => !tipoFiltro || item.tipoDocumento === tipoFiltro)
+        .map((item) => {
+          const tipo = item.tipoDocumento || "SEM TIPO";
+          let texto = item.texto || "";
+          const link = item.link || "";
+
+          texto = texto.replace(/&lt;/g, "<").replace(/&gt;/g, ">");
+
+          let textoLimpo = texto.trimStart();
+          if (textoLimpo.toUpperCase().startsWith(tipo.toUpperCase())) {
+            textoLimpo = textoLimpo.slice(tipo.length).trimStart();
+          }
+
+          const processado = textoLimpo
+            .replace(/N[ºº]?\s?(\d{7}-\d{2}\.\d{4}\.\d\.\d{2}\.\d{4})/g, '<span style="color:darkred;font-weight:bold;">Nº $1</span>');
+
+          return `<strong>${tipo}</strong><br><br>${processado}<br><a href="${link}" target="_blank">${link}</a>${sep}`;
+        })
+        .join("");
+    }
+
+    async function obterIP() {
+      try {
+        const res = await fetch("https://api64.ipify.org?format=json");
+        const json = await res.json();
+        return json.ip;
+      } catch (e) {
+        return "Erro ao obter IP";
+      }
+    }
+
+    async function registrarLog(orgaoId, dataApi) {
+      const ip = await obterIP();
+
+      const params = new URLSearchParams();
+      params.append("ip", ip);
+      params.append("orgaoId", orgaoId);
+      params.append("data", dataApi);
+
+      console.log("Enviando log para planilha (via URL encoded):", { ip, orgaoId, dataApi });
+
+      try {
+        const res = await fetch("https://corsproxy.io/?https://script.google.com/macros/s/AKfycbwVzoqt45-0lL_ZhowePjJsQqvX6crpJIf3CJjjdO6rHF3aJrvZ3FflPmyJx6tKXzoz2w/exec", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded"
+          },
+          body: params.toString()
+        });
+
+        console.log("Resposta do script:", res.status);
+      } catch (err) {
+        console.error("Erro no envio do log:", err);
+      }
+    }
+  </script>
+</body>
+</html>
