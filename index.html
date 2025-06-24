@@ -200,10 +200,16 @@
             textoLimpo = textoLimpo.slice(tipo.length).trimStart();
           }
 
-          const processado = textoLimpo.replace(
-            /N[ºº]?\s?(\d{7}-\d{2}\.\d{4}\.\d\.\d{2}\.\d{4})/g,
-            '<span style="color:darkred;font-weight:bold;">Nº $1</span>'
-          );
+let processado = textoLimpo.replace(
+  /N[ºº]?\s?(\d{7}-\d{2}\.\d{4}\.\d\.\d{2}\.\d{4})/g,
+  '<span style="color:darkred;font-weight:bold;">Nº $1</span>'
+);
+
+// destacar trecho roxo entre dois hífens antes de "Magistrado"
+processado = processado.replace(/-([^-\n\r]+)-(?=[^-]*Magistrado)/g, (m, p1) => {
+  return `-<span style="color:purple;font-weight:bold;">${p1}</span>-`;
+});
+
 
           html += `<strong>${tipo}</strong><br><br>${processado}<br><a href="${link}" target="_blank">${link}</a>${sep}`;
         });
