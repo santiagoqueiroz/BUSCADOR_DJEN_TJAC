@@ -200,19 +200,33 @@
             textoLimpo = textoLimpo.slice(tipo.length).trimStart();
           }
 
-let textoBruto = item.texto || "";
+let texto = item.texto || "";
 
-// destaque do número do processo
-let processado = textoBruto.replace(
+// pintar número do processo
+texto = texto.replace(
   /N[ºº]?\s?(\d{7}-\d{2}\.\d{4}\.\d\.\d{2}\.\d{4})/g,
   '<span style="color:darkred;font-weight:bold;">Nº $1</span>'
 );
 
-// envelopa tudo em roxo no final
-processado = `<span style="color:purple; font-weight:bold;">${processado}</span>`;
+// procurar posição de "- -"
+let ini = texto.indexOf("- -");
+let idxMag = texto.search(/- [^-]*Magistrado(\(a\))?/);
 
+if (ini !== -1 && idxMag !== -1 && idxMag > ini) {
+  // ⚠️ usar texto SEM SPAN pra calcular índice corretamente
+  const textoSemSpan = item.texto || "";
+  let trechoEntre = textoSemSpan.slice(ini + 3, idxMag);
+  let idxUltimoHifen = trechoEntre.lastIndexOf("-");
 
+  if (idxUltimoHifen !== -1) {
+    let fim = ini + 3 + idxUltimoHifen + 1;
+    let alvo = textoSemSpan.slice(ini, fim);
+    let alvoComSpan = `<span style="color:purple; font-weight:bold;">${alvo}</span>`;
+    texto = texto.replace(alvo, alvoComSpan);
+  }
+}
 
+let processado = `<pre style="white-space:pre-wrap;">${texto}</pre>`;
 
 
           html += `<strong>${tipo}</strong><br><br>${processado}<br><a href="${link}" target="_blank">${link}</a>${sep}`;
