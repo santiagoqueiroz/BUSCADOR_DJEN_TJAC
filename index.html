@@ -31,7 +31,7 @@
   <h2>Consulta de Comunicações - TJAC</h2>
 
   <p style="font-size: 14px; margin-bottom: 20px;">
-    Buscador criado por <strong>José Santiago de Queiroz Neto</strong> – Técnico Judiciário - com uso de IA.<br />
+    Buscador criado por <strong>José Santiago de Queiroz Neto</strong> – Técnico Judiciário – Matrícula 7001567 – com uso de IA.<br />
     <em>Versão 1.0</em> – Para contato: <a href="mailto:jose.neto@tjac.jus.br">jose.neto@tjac.jus.br</a>
   </p>
 
@@ -92,8 +92,6 @@
         const dia = String(hoje.getDate()).padStart(2, "0");
         dataApi = `${ano}-${mes}-${dia}`;
       }
-
-      await registrarLog(orgaoId, dataApi);
 
       const baseUrl = `https://comunicaapi.pje.jus.br/api/v1/comunicacao`;
       let pagina = 1;
@@ -186,41 +184,6 @@
           return `<strong>${tipo}</strong><br><br>${processado}<br><a href="${link}" target="_blank">${link}</a>${sep}`;
         })
         .join("");
-    }
-
-    async function obterIP() {
-      try {
-        const res = await fetch("https://api64.ipify.org?format=json");
-        const json = await res.json();
-        return json.ip;
-      } catch (e) {
-        return "Erro ao obter IP";
-      }
-    }
-
-    async function registrarLog(orgaoId, dataApi) {
-      const ip = await obterIP();
-
-      const params = new URLSearchParams();
-      params.append("ip", ip);
-      params.append("orgaoId", orgaoId);
-      params.append("data", dataApi);
-
-      console.log("Enviando log para planilha (via URL encoded):", { ip, orgaoId, dataApi });
-
-      try {
-        const res = await fetch("https://corsproxy.io/?https://script.google.com/macros/s/AKfycbwVzoqt45-0lL_ZhowePjJsQqvX6crpJIf3CJjjdO6rHF3aJrvZ3FflPmyJx6tKXzoz2w/exec", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/x-www-form-urlencoded"
-          },
-          body: params.toString()
-        });
-
-        console.log("Resposta do script:", res.status);
-      } catch (err) {
-        console.error("Erro no envio do log:", err);
-      }
     }
   </script>
 </body>
