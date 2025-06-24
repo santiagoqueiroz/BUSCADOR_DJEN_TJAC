@@ -202,31 +202,30 @@
 
 let texto = item.texto || "";
 
-// pintar número do processo
+// destacar número do processo
 texto = texto.replace(
   /N[ºº]?\s?(\d{7}-\d{2}\.\d{4}\.\d\.\d{2}\.\d{4})/g,
-  '<span style="color:darkred;font-weight:bold;">Nº $1</span>'
+  '<span style="color:darkred; font-weight:bold;">Nº $1</span>'
 );
 
-// procurar posição de "- -"
-let ini = texto.indexOf("- -");
-let idxMag = texto.search(/- [^-]*Magistrado(\(a\))?/);
+// pintar trecho entre "- -" e último hífen antes de "Magistrado" ou "Magistrado(a)"
+const textoPuro = item.texto || "";
+const ini = textoPuro.indexOf("- -");
+const idxMag = textoPuro.search(/- [^-]*Magistrado(\(a\))?/);
 
 if (ini !== -1 && idxMag !== -1 && idxMag > ini) {
-  // ⚠️ usar texto SEM SPAN pra calcular índice corretamente
-  const textoSemSpan = item.texto || "";
-  let trechoEntre = textoSemSpan.slice(ini + 3, idxMag);
-  let idxUltimoHifen = trechoEntre.lastIndexOf("-");
-
-  if (idxUltimoHifen !== -1) {
-    let fim = ini + 3 + idxUltimoHifen + 1;
-    let alvo = textoSemSpan.slice(ini, fim);
-    let alvoComSpan = `<span style="color:purple; font-weight:bold;">${alvo}</span>`;
-    texto = texto.replace(alvo, alvoComSpan);
+  const trecho = textoPuro.slice(ini + 3, idxMag);
+  const idxUltHifen = trecho.lastIndexOf("-");
+  if (idxUltHifen !== -1) {
+    const fim = ini + 3 + idxUltHifen + 1;
+    const alvo = textoPuro.slice(ini, fim);
+    const alvoSpan = `<span style="color:purple; font-weight:bold;">${alvo}</span>`;
+    texto = texto.replace(alvo, alvoSpan);
   }
 }
 
-let processado = `<pre style="white-space:pre-wrap;">${texto}</pre>`;
+let processado = texto;
+
 
 
           html += `<strong>${tipo}</strong><br><br>${processado}<br><a href="${link}" target="_blank">${link}</a>${sep}`;
