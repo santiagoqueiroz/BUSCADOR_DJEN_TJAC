@@ -205,22 +205,26 @@ let processado = textoLimpo.replace(
   '<span style="color:darkred;font-weight:bold;">Nº $1</span>'
 );
 
-// pintar de roxo entre "- -" e último "-" antes de "Magistrado" ou "Magistrado(a)"
-let idxInicio = processado.indexOf("- -");
-let idxMagistrado = processado.search(/Magistrado(\(a\))?/);
+let textoBruto = textoLimpo; // sem <span> ainda
 
-if (idxInicio !== -1 && idxMagistrado !== -1) {
-  let trechoAntesMagistrado = processado.slice(idxInicio + 3, idxMagistrado);
-  let idxUltimoHifen = trechoAntesMagistrado.lastIndexOf("-");
-  
-  if (idxUltimoHifen !== -1) {
-    let inicio = idxInicio;
-    let fim = idxInicio + 3 + idxUltimoHifen + 1;
-    let original = processado.slice(inicio, fim);
-    let destacado = `<span style="color:purple;font-weight:bold;">${original}</span>`;
-    processado = processado.slice(0, inicio) + destacado + processado.slice(fim);
+// extrair a posição de "- -" até o hífen antes de "Magistrado" ou "Magistrado(a)"
+let ini = textoBruto.indexOf("- -");
+let idxMag = textoBruto.search(/Magistrado(\(a\))?/);
+
+if (ini !== -1 && idxMag !== -1) {
+  let trecho = textoBruto.slice(ini + 3, idxMag); // depois do "- -", até antes de "Magistrado"
+  let ultHifenRel = trecho.lastIndexOf("-");
+
+  if (ultHifenRel !== -1) {
+    let fim = ini + 3 + ultHifenRel + 1;
+    let alvo = textoBruto.slice(ini, fim);
+    
+    // agora pintar esse trecho no texto com tags
+    const alvoComSpan = `<span style="color:purple;font-weight:bold;">${alvo}</span>`;
+    processado = processado.replace(alvo, alvoComSpan);
   }
 }
+
 
 
 
