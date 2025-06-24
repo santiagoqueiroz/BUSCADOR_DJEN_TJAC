@@ -206,8 +206,10 @@ let processado = textoLimpo.replace(
 );
 
 // destacar trecho roxo entre dois hífens antes de "Magistrado"
-processado = processado.replace(/-([^-\n\r]+)-(?=[^-]*Magistrado)/g, (m, p1) => {
-  return `-<span style="color:purple;font-weight:bold;">${p1}</span>-`;
+processado = processado.replace(/((?:-[^-]+){2})(?=[^-]*Magistrado)/g, (match) => {
+  const partes = match.split("-");
+  if (partes.length < 3) return match;
+  return `-<span style="color:purple;font-weight:bold;">${partes[1]}</span>-<span style="color:purple;">${partes[2]}</span>`;
 });
 
 
