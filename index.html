@@ -200,30 +200,17 @@
             textoLimpo = textoLimpo.slice(tipo.length).trimStart();
           }
 
-// localizar número do processo e pintar
-let textoBase = textoLimpo;
-textoBase = textoBase.replace(
+let textoBruto = item.texto || "";
+
+// destaque do número do processo
+let processado = textoBruto.replace(
   /N[ºº]?\s?(\d{7}-\d{2}\.\d{4}\.\d\.\d{2}\.\d{4})/g,
   '<span style="color:darkred;font-weight:bold;">Nº $1</span>'
 );
 
-// agora localizar "- -" até último "-" antes de "Magistrado(a)"
-let ini = textoLimpo.indexOf("- -");
-let idxMag = textoLimpo.search(/- [^-]*Magistrado(\(a\))?/);
+// envelopa tudo em roxo no final
+processado = `<span style="color:purple; font-weight:bold;">${processado}</span>`;
 
-if (ini !== -1 && idxMag !== -1 && idxMag > ini) {
-  let trechoEntre = textoLimpo.slice(ini + 3, idxMag); // após "- -", até "- Magistrado"
-  let idxUltHifen = trechoEntre.lastIndexOf("-");
-
-  if (idxUltHifen !== -1) {
-    let fim = ini + 3 + idxUltHifen + 1;
-    let alvo = textoLimpo.slice(ini, fim);
-    let alvoSpan = `<span style="color:purple;font-weight:bold;">${alvo}</span>`;
-    textoBase = textoBase.replace(alvo, alvoSpan);
-  }
-}
-
-let processado = textoBase;
 
 
 
