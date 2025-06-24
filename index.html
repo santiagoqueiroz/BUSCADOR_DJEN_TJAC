@@ -205,29 +205,6 @@ let processado = textoLimpo.replace(
   '<span style="color:darkred;font-weight:bold;">Nº $1</span>'
 );
 
-let textoBruto = textoLimpo; // sem <span> ainda
-
-// extrair a posição de "- -" até o hífen antes de "Magistrado" ou "Magistrado(a)"
-let ini = textoBruto.indexOf("- -");
-let idxMag = textoBruto.search(/Magistrado(\(a\))?/);
-
-if (ini !== -1 && idxMag !== -1) {
-  let trecho = textoBruto.slice(ini + 3, idxMag); // depois do "- -", até antes de "Magistrado"
-  let ultHifenRel = trecho.lastIndexOf("-");
-
-  if (ultHifenRel !== -1) {
-    let fim = ini + 3 + ultHifenRel + 1;
-    let alvo = textoBruto.slice(ini, fim);
-    
-    // agora pintar esse trecho no texto com tags
-    const alvoComSpan = `<span style="color:purple;font-weight:bold;">${alvo}</span>`;
-    processado = processado.replace(alvo, alvoComSpan);
-  }
-}
-
-
-
-
 
           html += `<strong>${tipo}</strong><br><br>${processado}<br><a href="${link}" target="_blank">${link}</a>${sep}`;
         });
