@@ -221,7 +221,7 @@
 //    .join("");
 //}
 
-  function gerarTextoFiltrado(tipoFiltro) {
+ function gerarTextoFiltrado(tipoFiltro) {
   const sep = "<div style='margin:10px 0; color:#999;'>".concat("=".repeat(25)).concat("</div>");
   return resultados
     .filter((item) => !tipoFiltro || item.tipoDocumento === tipoFiltro)
@@ -243,16 +243,18 @@
         '<span style="color:darkred;font-weight:bold;">Nº $1</span>'
       );
 
-      // Captura tudo entre o último nome de parte (último hífen antes de "Magistrado(a)") e o "Magistrado(a)"
-      processado = processado.replace(
-        /(.*?)( - Magistrado\(a\))/gs,
-        (match, antesMagistrado, mag) => {
-          const partes = antesMagistrado.split(" - ");
-          const ultimaParte = partes.pop(); // pega o conteúdo da decisão
-          const restante = partes.join(" - ");
-          return `${restante} - <span style="background:#fff6c0;">${ultimaParte.trim()}</span>${mag}`;
-        }
-      );
+      // Captura e destaca o conteúdo entre o último hífen antes de "Magistrado(a)"
+      const magIndex = processado.lastIndexOf(" - Magistrado(a)");
+      if (magIndex > -1) {
+        const antesMag = processado.slice(0, magIndex);
+        const depoisMag = processado.slice(magIndex);
+
+        const partes = antesMag.split(" - ");
+        const corpoDecisao = partes.pop();
+        const cabecalho = partes.join(" - ");
+
+        processado = `${cabecalho} - <span style="background:#fff6c0;">${corpoDecisao.trim()}</span>${depoisMag}`;
+      }
 
       return `<strong>${tipo}</strong><br><br>${processado}<br><a href="${link}" target="_blank">${link}</a>${sep}`;
     })
