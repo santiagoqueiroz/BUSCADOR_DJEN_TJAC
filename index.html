@@ -186,7 +186,42 @@
 //        .join("");
 //    }
 
-function gerarTextoFiltrado(tipoFiltro) {
+// function gerarTextoFiltrado(tipoFiltro) {
+// const sep = "<div style='margin:10px 0; color:#999;'>".concat("=".repeat(25)).concat("</div>");
+//  return resultados
+//    .filter((item) => !tipoFiltro || item.tipoDocumento === tipoFiltro)
+//    .map((item) => {
+//      const tipo = item.tipoDocumento || "SEM TIPO";
+//      let texto = item.texto || "";
+//      const link = item.link || "";
+
+//      texto = texto.replace(/&lt;/g, "<").replace(/&gt;/g, ">");
+//      let textoLimpo = texto.trimStart();
+
+//      if (textoLimpo.toUpperCase().startsWith(tipo.toUpperCase())) {
+//        textoLimpo = textoLimpo.slice(tipo.length).trimStart();
+//      }
+
+//      // Marca o número do processo em vermelho escuro
+//      let processado = textoLimpo.replace(
+//        /N[ºº]?\s?(\d{7}-\d{2}\.\d{4}\.\d\.\d{2}\.\d{4})/g,
+ //       '<span style="color:darkred;font-weight:bold;">Nº $1</span>'
+//      );
+
+//      // Isola o bloco da decisão e colore
+//      processado = processado.replace(
+//        /(Apelante:.*?)( - Magistrado\(a\))/gs,
+//        (match, corpo, mag) => {
+//          return `<span style="background:#fff6c0;">${corpo}</span>${mag}`;
+//        }
+//      );
+//
+//      return `<strong>${tipo}</strong><br><br>${processado}<br><a href="${link}" target="_blank">${link}</a>${sep}`;
+//    })
+//    .join("");
+//}
+
+  function gerarTextoFiltrado(tipoFiltro) {
   const sep = "<div style='margin:10px 0; color:#999;'>".concat("=".repeat(25)).concat("</div>");
   return resultados
     .filter((item) => !tipoFiltro || item.tipoDocumento === tipoFiltro)
@@ -202,17 +237,20 @@ function gerarTextoFiltrado(tipoFiltro) {
         textoLimpo = textoLimpo.slice(tipo.length).trimStart();
       }
 
-      // Marca o número do processo em vermelho escuro
+      // Marca número do processo
       let processado = textoLimpo.replace(
         /N[ºº]?\s?(\d{7}-\d{2}\.\d{4}\.\d\.\d{2}\.\d{4})/g,
         '<span style="color:darkred;font-weight:bold;">Nº $1</span>'
       );
 
-      // Isola o bloco da decisão e colore
+      // Captura tudo entre o último nome de parte (último hífen antes de "Magistrado(a)") e o "Magistrado(a)"
       processado = processado.replace(
-        /(Apelante:.*?)( - Magistrado\(a\))/gs,
-        (match, corpo, mag) => {
-          return `<span style="background:#fff6c0;">${corpo}</span>${mag}`;
+        /(.*?)( - Magistrado\(a\))/gs,
+        (match, antesMagistrado, mag) => {
+          const partes = antesMagistrado.split(" - ");
+          const ultimaParte = partes.pop(); // pega o conteúdo da decisão
+          const restante = partes.join(" - ");
+          return `${restante} - <span style="background:#fff6c0;">${ultimaParte.trim()}</span>${mag}`;
         }
       );
 
@@ -221,7 +259,6 @@ function gerarTextoFiltrado(tipoFiltro) {
     .join("");
 }
 
-  
   
   </script>
 </body>
