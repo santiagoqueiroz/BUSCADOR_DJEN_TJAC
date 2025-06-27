@@ -186,7 +186,7 @@
 //        .join("");
 //    }
 
-    function gerarTextoFiltrado(tipoFiltro) {
+function gerarTextoFiltrado(tipoFiltro) {
   const sep = "<div style='margin:10px 0; color:#999;'>".concat("=".repeat(25)).concat("</div>");
   return resultados
     .filter((item) => !tipoFiltro || item.tipoDocumento === tipoFiltro)
@@ -208,11 +208,11 @@
         '<span style="color:darkred;font-weight:bold;">Nº $1</span>'
       );
 
-      // Realça o corpo da decisão com fundo amarelo
+      // Isola o bloco da decisão e colore
       processado = processado.replace(
-        /- (?:Apelante|Agravante|Revisionando|Impetrante|Apelado|Agravado|Revisionado|Impetrado|Apelada|Agravada):[\s\S]+?- Magistrado\(a\)/g,
-        (bloco) => {
-          return `<span style="background:#fff6c0;">${bloco}</span>`;
+        /(Apelante:.*?)( - Magistrado\(a\))/gs,
+        (match, corpo, mag) => {
+          return `<span style="background:#fff6c0;">${corpo}</span>${mag}`;
         }
       );
 
@@ -220,6 +220,7 @@
     })
     .join("");
 }
+
   
   
   </script>
